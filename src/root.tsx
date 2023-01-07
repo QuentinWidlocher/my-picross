@@ -21,7 +21,10 @@ export default function Root() {
       <Head>
         <Title>My Picross</Title>
         <Meta charset="utf-8" />
-        <Meta name="viewport" content="width=device-width, initial-scale=1" />
+        <Meta
+          name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"
+        />
       </Head>
       <Body class="h-full">
         <Suspense>
