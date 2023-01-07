@@ -64,7 +64,7 @@ export default function Board(props: BoardProps) {
   )
 
   return (
-    <section class="grid grid-cols-[1fr,auto] grid-rows-[1fr,auto] bg-slate-200 p-2 m-5 gap-1 rounded-lg w-fit overflow-auto">
+    <section class="grid grid-cols-[1fr,auto] grid-rows-[1fr,auto] bg-slate-200 p-2 md:m-5 gap-1 rounded-lg md:w-fit overflow-auto">
       <div class="col-start-1 row-start-1 mr-1 mb-1">
         <Preview state={boardState} />
       </div>

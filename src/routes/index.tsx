@@ -1,3 +1,4 @@
+import { useLocation, useRouteData } from 'solid-start'
 import Board from '~/components/picross/board'
 
 type Pattern = {
@@ -45,13 +46,26 @@ const chicken: Pattern = {
   ],
 }
 
+export function routeData() {
+  const { search } = useLocation()
+  let searchParams = new URLSearchParams(search)
+
+  if (searchParams.has('puzzle') && searchParams.get('puzzle')) {
+    let puzzle = JSON.parse(atob(searchParams.get('puzzle')!))
+    return { puzzle }
+  } else {
+    return { puzzle: chicken }
+  }
+}
+
 export default function Home() {
+  let { puzzle } = useRouteData<typeof routeData>()
   return (
     <main class="grid place-content-center h-full">
       <Board
-        rows={chicken.rows}
-        columns={chicken.columns}
-        solution={chicken.solution}
+        rows={puzzle.rows}
+        columns={puzzle.columns}
+        solution={puzzle.solution}
       />
     </main>
   )
