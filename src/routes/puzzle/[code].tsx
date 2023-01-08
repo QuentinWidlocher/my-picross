@@ -103,6 +103,7 @@ export function routeData() {
       rows,
       columns,
       solution,
+      code: params.code,
     }
   } else {
     throw redirect('/puzzle')
@@ -117,6 +118,7 @@ export default function PuzzleRoute() {
         rows={puzzle.rows}
         columns={puzzle.columns}
         solution={puzzle.solution}
+        code={puzzle.code}
       />
       <A
         href="/editor"

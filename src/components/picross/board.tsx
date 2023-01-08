@@ -10,9 +10,17 @@ type BoardProps = {
   rows: (string | number)[][]
   columns: (string | number)[][]
   solution: (1 | 0)[][]
-  editorMode?: boolean
-  onEditorSave?: (boardState: CellState[][]) => void
-}
+} & (
+  | {
+      code: string
+      editorMode?: false
+    }
+  | {
+      editorMode: true
+      code?: undefined
+      onEditorSave: (boardState: CellState[][]) => void
+    }
+)
 
 function getAssertGridSize(props: BoardProps) {
   let rowLength = props.rows.length
@@ -50,6 +58,14 @@ export default function Board(props: BoardProps) {
 
   let [boardStateUpdate, setBoardStateUpdate] = createSignal(0)
 
+  if (!props.editorMode) {
+    let stored = localStorage.getItem(props.code)
+    if (stored) {
+      let parsed = JSON.parse(stored)
+      setBoardState(parsed)
+    }
+  }
+
   createEffect(
     on(boardStateUpdate, () => {
       let done = boardState.every((row, rowIndex) =>
@@ -78,6 +94,11 @@ export default function Board(props: BoardProps) {
       colIndex,
       nextCellState(boardState[rowIndex][colIndex], props.editorMode),
     )
+
+    if (!props.editorMode) {
+      localStorage.setItem(props.code, JSON.stringify(boardState))
+    }
+
     setBoardStateUpdate((i) => i + 1)
   }
 
@@ -119,7 +140,9 @@ export default function Board(props: BoardProps) {
         <button
           class="bg-slate-400 hover:bg-slate-500 transform active:translate-y-px mt-5 text-white px-1 py-2 rounded mx-5"
           onClick={() => {
-            props.onEditorSave?.(boardState)
+            if (props.editorMode) {
+              props.onEditorSave(boardState)
+            }
           }}
         >
           Save this puzzle

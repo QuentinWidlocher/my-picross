@@ -58,6 +58,7 @@ export default function PuzzleRoute() {
         rows={puzzle.rows}
         columns={puzzle.columns}
         solution={puzzle.solution}
+        code="default"
       />
       <A
         href="/editor"
