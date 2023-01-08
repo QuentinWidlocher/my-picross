@@ -5,6 +5,7 @@ type GridProps = {
   columns: number
   boardState: CellState[][]
   onCellClick: (rowIndex: number, columnIndex: number) => void
+  disabled?: boolean
 }
 
 export default function Grid(props: GridProps) {
@@ -21,7 +22,7 @@ export default function Grid(props: GridProps) {
           <Cell
             state={cellState}
             onClick={() => {
-              props.onCellClick(rowIndex, columnIndex)
+              props.disabled || props.onCellClick(rowIndex, columnIndex)
             }}
           />
         )),
