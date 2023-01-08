@@ -49,8 +49,7 @@ export default function EditorPage() {
   let generatedShareData = (): ShareData | null => {
     if (!generatedUrl()) return null
     return {
-      title: 'My Picross puzzle',
-      text: 'Check out my Picross puzzle !',
+      title: 'Check out my Picross puzzle !',
       url: generatedUrl()!,
     }
   }
@@ -98,6 +97,7 @@ export default function EditorPage() {
             {'share' in navigator &&
             navigator.canShare(generatedShareData()!) ? (
               <button
+                class="bg-slate-400 hover:bg-slate-500 transform active:translate-y-px mt-5 text-white px-1 py-2 rounded mx-5"
                 onClick={() => {
                   navigator.share(generatedShareData()!)
                 }}
