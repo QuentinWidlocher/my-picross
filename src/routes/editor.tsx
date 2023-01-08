@@ -97,7 +97,7 @@ export default function EditorPage() {
             {'share' in navigator &&
             navigator.canShare(generatedShareData()!) ? (
               <button
-                class="bg-slate-400 hover:bg-slate-500 transform active:translate-y-px mt-5 text-white px-1 py-2 rounded mx-5 w-full"
+                class="bg-slate-400 hover:bg-slate-500 transform active:translate-y-px mt-5 text-white px-1 py-2 rounded w-full"
                 onClick={() => {
                   navigator.share(generatedShareData()!)
                 }}
