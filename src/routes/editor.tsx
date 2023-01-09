@@ -18,9 +18,6 @@ export default function EditorPage() {
       row.map((cell) => (cell == 'full' ? 1 : 0)),
     )
 
-    console.log({ serialized })
-    console.log({ compressed: compressBitString(serialized) })
-
     return btoa(compressBitString(serialized))
   }
 

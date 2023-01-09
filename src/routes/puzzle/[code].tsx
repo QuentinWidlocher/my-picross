@@ -1,8 +1,7 @@
-import { Switch } from 'solid-js'
 import { redirect, useParams, useRouteData } from 'solid-start'
 import { Link } from '~/components/button'
 import Board from '~/components/picross/board'
-import { runLengthUncompressBitString as uncompressBitString } from '~/utils/compression'
+import { autoDecompress as uncompressBitString } from '~/utils/compression'
 
 function sliceIntoChunks<T>(arr: Array<T>, chunkSize: number) {
   const res = []

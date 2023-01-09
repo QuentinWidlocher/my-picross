@@ -1,5 +1,9 @@
 export type BitString = (1 | 0)[]
 
+function detectCompression(compressed: string): 'runlength' | 'hex' {
+  return compressed.includes(';') ? 'hex' : 'runlength'
+}
+
 export function runLengthCompressBitString(bitString: BitString): string {
   let result = ''
   let currentBit = 0
@@ -48,34 +52,48 @@ export function runLengthUncompressBitString(compressed: string): BitString {
  * Else we would suffer from precision loss.
  */
 export function hexCompressBitString(bitString: BitString): string {
-  let str = bitString.join('')
-  let [part1, part2] = [
-    str.slice(0, Math.floor(str.length / 2)),
-    str.slice(Math.floor(str.length / 2), str.length),
+  let binaryString = bitString.join('')
+
+  let [binaryString1, binaryString2] = [
+    binaryString.slice(0, 50),
+    binaryString.slice(50, binaryString.length),
   ]
 
-  return parseInt(part1, 2).toString(16) + parseInt(part2, 2).toString(16)
+  let [binaryNumber1, binaryNumber2] = [
+    parseInt(binaryString1, 2),
+    parseInt(binaryString2, 2),
+  ]
+
+  let hexNumber = binaryNumber1.toString(16) + ';' + binaryNumber2.toString(16)
+
+  return hexNumber
 }
 
 export function hexUncompressBitString(compressed: string): BitString {
-  console.log({ compressed })
-  console.log(parseInt(compressed, 16).toString(2).length)
+  let [hexString1, hexString2] = compressed.split(';')
 
-  let middleIndex =
-    compressed
-      .split('')
-      .findIndex((x, i) => i >= Math.floor(compressed.length / 2) && x == '0') +
-    1
-
-  let [part1, part2] = [
-    compressed.slice(0, middleIndex).padEnd(compressed.length, '0'),
-    compressed.slice(middleIndex, compressed.length),
+  let [parsedHexNumber1, parsedHexNumber2] = [
+    parseInt(hexString1, 16),
+    parseInt(hexString2, 16),
   ]
 
-  console.log({ part1, part2 })
+  let [parsedBinaryString1, parsedBinaryString2] = [
+    parsedHexNumber1.toString(2),
+    parsedHexNumber2.toString(2),
+  ]
 
-  return (parseInt(part1, 16) + parseInt(part2, 16))
-    .toString(2)
-    .split('')
-    .map((x) => parseInt(x) as 1 | 0)
+  let parsedBinaryString =
+    parsedBinaryString1.padStart(50, '0') +
+    parsedBinaryString2.padStart(50, '0')
+
+  return parsedBinaryString.split('').map((x) => parseInt(x) as 1 | 0)
+}
+
+export function autoDecompress(compressed: string) {
+  let compression = detectCompression(compressed)
+  if (compression == 'runlength') {
+    return runLengthUncompressBitString(compressed)
+  } else {
+    return hexUncompressBitString(compressed)
+  }
 }
