@@ -1,6 +1,7 @@
 import { createEffect, createSignal, Match, on, Show, Switch } from 'solid-js'
 import { createStore } from 'solid-js/store'
 import { createRouteAction } from 'solid-start'
+import { Button } from '../button'
 import { CellState, cellStates } from './grid/cell'
 import Grid from './grid/grid'
 import Header from './header/header'
@@ -68,6 +69,10 @@ export default function Board(props: BoardProps) {
 
   createEffect(
     on(boardStateUpdate, () => {
+      if (!props.editorMode) {
+        localStorage.setItem(props.code, JSON.stringify(boardState))
+      }
+
       let done = boardState.every((row, rowIndex) =>
         row.every((cellState, columnIndex) => {
           let solution = props.solution[rowIndex][columnIndex]
@@ -95,9 +100,11 @@ export default function Board(props: BoardProps) {
       nextCellState(boardState[rowIndex][colIndex], props.editorMode),
     )
 
-    if (!props.editorMode) {
-      localStorage.setItem(props.code, JSON.stringify(boardState))
-    }
+    setBoardStateUpdate((i) => i + 1)
+  }
+
+  function onCellRightClick(rowIndex: number, colIndex: number) {
+    setBoardState(rowIndex, colIndex, 'crossed')
 
     setBoardStateUpdate((i) => i + 1)
   }
@@ -105,7 +112,7 @@ export default function Board(props: BoardProps) {
   return (
     <Switch>
       <Match when={!props.editorMode}>
-        <section class="grid grid-cols-[1fr,auto] grid-rows-[1fr,auto] bg-slate-200 p-2 md:m-5 gap-1 rounded-lg md:w-fit overflow-auto">
+        <section class="grid grid-cols-[1fr,auto] grid-rows-[1fr,auto] bg-slate-200 p-2 gap-1 rounded-lg md:w-fit overflow-auto">
           <div class="col-start-1 row-start-1 mr-1 mb-1 min-w-[5rem] aspect-square">
             <Preview state={boardState} />
           </div>
@@ -121,6 +128,7 @@ export default function Board(props: BoardProps) {
               columns={columnLength}
               boardState={boardState}
               onCellClick={onCellClick}
+              onCellRightClick={onCellRightClick}
             />
           </div>
         </section>
@@ -129,16 +137,16 @@ export default function Board(props: BoardProps) {
         <div class="mx-auto mb-5 w-24 aspect-square">
           <Preview state={boardState} />
         </div>
-        <section class="bg-slate-200 p-2 md:m-5 rounded-lg md-w-fit overflow-auto">
+        <section class="bg-slate-200 p-2 rounded-lg md-w-fit overflow-auto">
           <Grid
             rows={rowLength}
             columns={columnLength}
             boardState={boardState}
             onCellClick={onCellClick}
+            onCellRightClick={onCellRightClick}
           />
         </section>
-        <button
-          class="bg-slate-400 hover:bg-slate-500 transform active:translate-y-px mt-5 text-white px-1 py-2 rounded mx-5"
+        <Button
           onClick={() => {
             if (props.editorMode) {
               props.onEditorSave(boardState)
@@ -146,7 +154,7 @@ export default function Board(props: BoardProps) {
           }}
         >
           Save this puzzle
-        </button>
+        </Button>
       </Match>
     </Switch>
   )

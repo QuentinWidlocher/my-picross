@@ -3,6 +3,7 @@ import { createSignal, Match, Switch } from 'solid-js'
 type CellProps = {
   state: CellState
   onClick: () => void
+  onRightClick: () => void
 }
 
 export const cellStates = ['empty', 'full', 'crossed'] as const
@@ -13,6 +14,10 @@ export default function Cell(props: CellProps) {
     <div
       class="h-cell w-cell cursor-pointer bg-white rounded grid"
       onclick={() => props.onClick()}
+      onContextMenu={(e) => {
+        e.preventDefault()
+        props.onRightClick()
+      }}
     >
       <Switch>
         <Match when={props.state == 'full'}>

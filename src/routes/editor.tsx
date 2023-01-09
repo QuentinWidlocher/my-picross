@@ -1,28 +1,8 @@
 import { createSignal, Match, Switch } from 'solid-js'
+import { Button, Link } from '~/components/button'
 import Board from '~/components/picross/board'
 import Preview from '~/components/picross/preview'
-
-function compressBitString(bitString: (1 | 0)[]) {
-  let result = ''
-  let currentBit = 0
-  let currentLength = 0
-
-  for (const bit of bitString) {
-    if (currentLength == 0) {
-      currentBit = bit
-      currentLength = 1
-    } else if (currentBit != bit) {
-      result = result + `${currentLength}${currentBit ? 'b' : 'w'}`
-      currentBit = bit
-      currentLength = 1
-    } else {
-      currentLength++
-    }
-  }
-  result += `${currentLength}${currentBit ? 'b' : 'w'}`
-
-  return result
-}
+import { runLengthCompressBitString as compressBitString } from '~/utils/compression'
 
 export default function EditorPage() {
   let [boardState, setBoardState] = createSignal<
@@ -37,6 +17,9 @@ export default function EditorPage() {
     let serialized = boardState()!.flatMap((row) =>
       row.map((cell) => (cell == 'full' ? 1 : 0)),
     )
+
+    console.log({ serialized })
+    console.log({ compressed: compressBitString(serialized) })
 
     return btoa(compressBitString(serialized))
   }
@@ -55,9 +38,9 @@ export default function EditorPage() {
   }
 
   return (
-    <main class="grid place-content-center h-full">
-      <Switch>
-        <Match when={!generatedCode()}>
+    <Switch>
+      <Match when={!generatedCode()}>
+        <main class="grid place-content-center h-full w-full space-y-5 max-sm:p-2">
           <Board
             rows={Array.from({ length: 10 }).map(() => [1])}
             columns={Array.from({ length: 10 }).map(() => [1])}
@@ -67,14 +50,16 @@ export default function EditorPage() {
             editorMode
             onEditorSave={setBoardState}
           />
-        </Match>
-        <Match when={generatedCode() && boardState()}>
-          <div class="w-full md:w-full aspect-square">
+        </main>
+      </Match>
+      <Match when={generatedCode() && boardState()}>
+        <main class="grid sm:place-content-center h-full w-full space-y-5 max-sm:p-2">
+          <div class="w-full md:w-full aspect-square mt-auto">
             <Preview state={boardState()!} />
           </div>
-          <div class="m-5">
-            <strong>Your puzzle link :</strong> <br />
+          <div class="flex flex-col space-y-5">
             <div class="flex flex-col">
+              <strong>Your puzzle link :</strong>
               <input
                 onClick={(e) => {
                   if (navigator.clipboard) {
@@ -94,20 +79,22 @@ export default function EditorPage() {
                 {copied() ? 'Link copied to clipboard !' : 'Click to copy'}
               </small>
             </div>
+            <Link class="w-full" href={generatedUrl()!}>
+              Try your puzzle
+            </Link>
             {'share' in navigator &&
             navigator.canShare(generatedShareData()!) ? (
-              <button
-                class="bg-slate-400 hover:bg-slate-500 transform active:translate-y-px mt-5 text-white px-1 py-2 rounded w-full"
+              <Button
                 onClick={() => {
                   navigator.share(generatedShareData()!)
                 }}
               >
                 Share your puzzle
-              </button>
+              </Button>
             ) : null}
           </div>
-        </Match>
-      </Switch>
-    </main>
+        </main>
+      </Match>
+    </Switch>
   )
 }

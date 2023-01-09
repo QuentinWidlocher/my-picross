@@ -1,5 +1,8 @@
-import { A, redirect, useLocation, useParams, useRouteData } from 'solid-start'
+import { Switch } from 'solid-js'
+import { redirect, useParams, useRouteData } from 'solid-start'
+import { Link } from '~/components/button'
 import Board from '~/components/picross/board'
+import { runLengthUncompressBitString as uncompressBitString } from '~/utils/compression'
 
 function sliceIntoChunks<T>(arr: Array<T>, chunkSize: number) {
   const res = []
@@ -10,26 +13,6 @@ function sliceIntoChunks<T>(arr: Array<T>, chunkSize: number) {
   return res
 }
 
-function uncompressBitString(compressed: string) {
-  let result: (1 | 0)[] = []
-
-  let indexInStr = 0
-  let indexInChunks = 0
-  while (indexInStr < compressed.length) {
-    let lengthStr = compressed.split('w').flatMap((x) => x.split('b'))[
-      indexInChunks
-    ]
-    let length = parseInt(lengthStr)
-    let bit = compressed[indexInStr + lengthStr.length] == 'b' ? 1 : 0
-
-    result.push(...Array.from({ length }).map(() => bit as 1 | 0))
-    indexInStr += lengthStr.length + 1
-    indexInChunks++
-  }
-
-  return sliceIntoChunks(result, 10)
-}
-
 function pivoted<T>(input: T[][]) {
   return input.map((_, colIndex) => input.map((row) => row[colIndex]))
 }
@@ -38,72 +21,83 @@ export function routeData() {
   let params = useParams()
 
   if (params.code) {
-    let decrompressed = atob(params.code)
-    let solution = uncompressBitString(decrompressed)
+    try {
+      let decompressed = atob(params.code)
 
-    let rows: number[][] = []
+      let solution = sliceIntoChunks(uncompressBitString(decompressed), 10)
 
-    for (const row of solution) {
-      let i = rows.push([]) - 1
-      let currentBit = 0
-      let currentLength = 0
-      for (const bit of row) {
-        if (currentLength == 0) {
-          currentBit = bit
-          currentLength = 1
-        } else if (currentBit != bit) {
-          if (currentBit == 1) {
-            rows[i].push(currentLength)
+      console.log(solution)
+
+      if (solution.length != 10 || solution.some((row) => row.length != 10)) {
+        throw new Error('Invalid solution')
+      }
+
+      let rows: number[][] = []
+
+      for (const row of solution) {
+        let i = rows.push([]) - 1
+        let currentBit = 0
+        let currentLength = 0
+        for (const bit of row) {
+          if (currentLength == 0) {
+            currentBit = bit
+            currentLength = 1
+          } else if (currentBit != bit) {
+            if (currentBit == 1) {
+              rows[i].push(currentLength)
+            }
+            currentBit = bit
+            currentLength = 1
+          } else {
+            currentLength++
           }
-          currentBit = bit
-          currentLength = 1
-        } else {
-          currentLength++
+        }
+        if (currentBit == 1) {
+          rows[i].push(currentLength)
+        }
+
+        if (rows[i].length == 0) {
+          rows[i].push(0)
         }
       }
-      if (currentBit == 1) {
-        rows[i].push(currentLength)
-      }
 
-      if (rows[i].length == 0) {
-        rows[i].push(0)
-      }
-    }
+      let columns: number[][] = []
 
-    let columns: number[][] = []
-
-    for (const column of pivoted(solution)) {
-      let i = columns.push([]) - 1
-      let currentBit = 0
-      let currentLength = 0
-      for (const bit of column) {
-        if (currentLength == 0) {
-          currentBit = bit
-          currentLength = 1
-        } else if (currentBit != bit) {
-          if (currentBit == 1) {
-            columns[i].push(currentLength)
+      for (const column of pivoted(solution)) {
+        let i = columns.push([]) - 1
+        let currentBit = 0
+        let currentLength = 0
+        for (const bit of column) {
+          if (currentLength == 0) {
+            currentBit = bit
+            currentLength = 1
+          } else if (currentBit != bit) {
+            if (currentBit == 1) {
+              columns[i].push(currentLength)
+            }
+            currentBit = bit
+            currentLength = 1
+          } else {
+            currentLength++
           }
-          currentBit = bit
-          currentLength = 1
-        } else {
-          currentLength++
+        }
+        if (currentBit == 1) {
+          columns[i].push(currentLength)
+        }
+
+        if (columns[i].length == 0) {
+          columns[i].push(0)
         }
       }
-      if (currentBit == 1) {
-        columns[i].push(currentLength)
-      }
 
-      if (columns[i].length == 0) {
-        columns[i].push(0)
+      return {
+        rows,
+        columns,
+        solution,
+        code: params.code,
       }
-    }
-
-    return {
-      rows,
-      columns,
-      solution,
-      code: params.code,
+    } catch (e) {
+      return new Error('Invalid puzzle code')
     }
   } else {
     throw redirect('/puzzle')
@@ -112,20 +106,25 @@ export function routeData() {
 
 export default function PuzzleRoute() {
   let puzzle = useRouteData<typeof routeData>()
-  return (
-    <main class="grid place-content-center h-full">
-      <Board
-        rows={puzzle.rows}
-        columns={puzzle.columns}
-        solution={puzzle.solution}
-        code={puzzle.code}
-      />
-      <A
-        href="/editor"
-        class="bg-slate-100 text-slate-400 hover:bg-slate-200 transform active:translate-y-px mt-5 px-1 py-2 rounded mx-5 text-center"
-      >
-        Create your own puzzle !
-      </A>
-    </main>
-  )
+
+  if (puzzle instanceof Error) {
+    return (
+      <main class="grid place-content-center h-full space-y-5 max-sm:p-2">
+        <h1 class="text-2xl font-bold text-center">Invalid puzzle code</h1>
+        <Link href="/puzzle">Back to puzzles</Link>
+      </main>
+    )
+  } else {
+    return (
+      <main class="grid place-content-center h-full space-y-5">
+        <Board
+          rows={puzzle.rows}
+          columns={puzzle.columns}
+          solution={puzzle.solution}
+          code={puzzle.code}
+        />
+        <Link href="/editor">Create your own puzzle !</Link>
+      </main>
+    )
+  }
 }

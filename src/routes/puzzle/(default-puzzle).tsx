@@ -1,4 +1,5 @@
 import { A, useLocation, useRouteData } from 'solid-start'
+import { Link } from '~/components/button'
 import Board from '~/components/picross/board'
 
 type Pattern = {
@@ -53,19 +54,14 @@ export function routeData() {
 export default function PuzzleRoute() {
   let puzzle = useRouteData<typeof routeData>()
   return (
-    <main class="grid place-content-center h-full">
+    <main class="grid place-content-center h-full space-y-5 max-sm:p-2">
       <Board
         rows={puzzle.rows}
         columns={puzzle.columns}
         solution={puzzle.solution}
         code="default"
       />
-      <A
-        href="/editor"
-        class="bg-slate-100 text-slate-400 hover:bg-slate-200 transform active:translate-y-px mt-5 px-1 py-2 rounded mx-5 text-center"
-      >
-        Create your own puzzle !
-      </A>
+      <Link href="/editor">Create your own puzzle !</Link>
     </main>
   )
 }
