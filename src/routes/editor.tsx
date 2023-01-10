@@ -80,6 +80,8 @@ export default function EditorPage() {
               Try your puzzle
             </Link>
             {'share' in navigator &&
+            'canShare' in navigator &&
+            navigator.canShare != null &&
             navigator.canShare(generatedShareData()!) ? (
               <Button
                 onClick={() => {
